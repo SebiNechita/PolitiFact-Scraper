@@ -135,7 +135,7 @@ def scrape_website(page_number, start_time):
 
 # Loop through 'n-1' webpages to scrape the data
 start_time = time.time()
-n=5
+n=880
 for i in range(1, n):
     scrape_website(i, start_time)
 
