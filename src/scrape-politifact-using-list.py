@@ -152,4 +152,4 @@ data['factcheck_analysis_link'] = urls
 data['tags'] = tags
 
 # Show the data set
-data.iloc[:].to_csv('datasets/politifact.csv', index=False, sep=',')
+data.iloc[:].to_csv('../datasets/politifact.csv', index=False, sep=',')
