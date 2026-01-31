@@ -15,10 +15,11 @@ A Python web scraper that extracts fact-check data from PolitiFact.com, includin
   - **Fact-Checker**: Name of the journalist who wrote the fact-check
   - **Fact-Check Date**: When the fact-check was published
   - **Fact-Check Analysis Link**: Direct link to the full fact-check article
-- Exports data to CSV format
+- Exports data to CSV and JSON formats
 - Handles multi-word names correctly (e.g., "Maria Ramirez Uribe")
 - Built-in rate limiting to avoid server overload
 - Progress tracking with elapsed time display
+- Data filtering and categorization capabilities
 
 ## Requirements
 
@@ -38,16 +39,74 @@ pip install beautifulsoup4 pandas requests
 
 ## Usage
 
+### Scraping Data
+
 1. Open `scrape-politifact-using-list.py`
 2. Modify the `n` variable (line 130) to set how many pages to scrape:
    ```python
-   n = 5  # Will scrape pages 1-4 (879 pages maximum available)
+   n = 5  # Will scrape pages 1-4 (879 pages maximum available in January 2026)
    ```
 3. Run the script:
    ```bash
-   python scrape-politifact-using-list.py
+   python src/scrape-politifact-using-list.py
    ```
 4. The script will generate `politifact.csv` with all scraped data
+
+### Data Processing and Analysis
+
+The `src/statistics.ipynb` notebook provides various data processing capabilities:
+
+- **Data Cleaning**: Filters out Spanish content (`PolitiFact en Español`) and flip-flop verdicts
+- **Media Filtering**: Removes statements based on videos, images, or viral content
+- **Category Extraction**: Creates separate datasets for 8 specific topics (Health Care, Elections, Economy, Taxes, Immigration, Education, Crime, Jobs)
+- **Visualization**: Generates verdict distribution charts for each category
+- **Format Conversion**: Converts CSV datasets to JSON format
+
+To use the processing features:
+```bash
+jupyter notebook src/statistics.ipynb
+
+## Dataset Structure
+
+The project generates multiple datasets:
+
+```
+datasets/
+├── politifact.csv                           # Raw scraped data
+├── politifact-english.csv                   # Filtered: English only, no flip-flop verdicts
+├── politifact-english-no-media.csv          # Further filtered: no image/video statements
+├── politifact-english-no-media.json         # JSON format of above
+└── calibrated/                              # Topic-specific datasets
+    ├── politifact-crime.csv
+    ├── politifact-economy.csv
+    ├── politifact-education.csv
+    ├── politifact-elections.csv
+    ├── politifact-health-care.csv
+    ├── politifact-immigration.csv
+    ├── politifact-jobs.csv
+    ├── politifact-taxes.csv
+    └── json/                                # JSON versions
+        ├── politifact-crime.json
+        ├── politifact-economy.json
+        ├── politifact-education.json
+        ├── politifact-elections.json
+        ├── politifact-health-care.json
+        ├── politifact-immigration.json
+        ├── politifact-jobs.json
+        └── politifact-taxes.json
+```
+```
+
+### Converting Calibrated Datasets to JSON
+
+After creating category-specific CSV files, you can convert them to JSON format:
+
+```bash
+cd src
+python convert-calibrated-to-json.py
+```
+
+This will convert all CSV files in `datasets/calibrated/` to JSON format and save them in `datasets/calibrated/json/`.
 
 ## Output Format
 
@@ -70,7 +129,7 @@ The generated CSV contains the following columns:
 - Processing time: ~2-3 seconds per article
 - Each page contains ~10 articles
 - Full scrape (879 pages): Estimated 5-7 hours
-- Includes 0.2-second delay between article requests to be respectful to the server
+- Includes 0.2-second delay between article requests
 
 ## Notes
 
