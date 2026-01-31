@@ -66,47 +66,6 @@ To use the processing features:
 ```bash
 jupyter notebook src/statistics.ipynb
 
-## Dataset Structure
-
-The project generates multiple datasets:
-
-```
-datasets/
-├── politifact.csv                           # Raw scraped data
-├── politifact-english.csv                   # Filtered: English only, no flip-flop verdicts
-├── politifact-english-no-media.csv          # Further filtered: no image/video statements
-├── politifact-english-no-media.json         # JSON format of above
-└── calibrated/                              # Topic-specific datasets
-    ├── politifact-crime.csv
-    ├── politifact-economy.csv
-    ├── politifact-education.csv
-    ├── politifact-elections.csv
-    ├── politifact-health-care.csv
-    ├── politifact-immigration.csv
-    ├── politifact-jobs.csv
-    ├── politifact-taxes.csv
-    └── json/                                # JSON versions
-        ├── politifact-crime.json
-        ├── politifact-economy.json
-        ├── politifact-education.json
-        ├── politifact-elections.json
-        ├── politifact-health-care.json
-        ├── politifact-immigration.json
-        ├── politifact-jobs.json
-        └── politifact-taxes.json
-```
-```
-
-### Converting Calibrated Datasets to JSON
-
-After creating category-specific CSV files, you can convert them to JSON format:
-
-```bash
-cd src
-python convert-calibrated-to-json.py
-```
-
-This will convert all CSV files in `datasets/calibrated/` to JSON format and save them in `datasets/calibrated/json/`.
 
 ## Output Format
 
