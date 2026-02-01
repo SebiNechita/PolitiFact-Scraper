@@ -59,13 +59,39 @@ The `src/statistics.ipynb` notebook provides various data processing capabilitie
 - **Data Cleaning**: Filters out Spanish content (`PolitiFact en Español`) and flip-flop verdicts
 - **Media Filtering**: Removes statements based on videos, images, or viral content
 - **Category Extraction**: Creates separate datasets for 8 specific topics (Health Care, Elections, Economy, Taxes, Immigration, Education, Crime, Jobs)
-- **Visualization**: Generates verdict distribution charts for each category
-- **Format Conversion**: Converts CSV datasets to JSON format
+- **Visualization**: Generates verdict distribution charts for each category, showing the breakdown of verdicts (true, mostly-true, half-true, mostly-false, false, pants-fire) for each of the 8 topics
+- **Format Conversion**: Converts CSV datasets to JSON format with proper Unicode support
 
 To use the processing features:
 ```bash
 jupyter notebook src/statistics.ipynb
 ```
+
+The notebook generates bar charts visualizing verdict distributions for each of the 8 topics. Each chart displays the count of statements for each verdict category, making it easy to analyze fact-checking patterns across different topics.
+
+#### Health Care
+![Health Care Verdict Distribution](figures/Health_Care_verdict_distribuition.png)
+
+#### Elections
+![Elections Verdict Distribution](figures/Elections_verdict_distribuition.png)
+
+#### Economy
+![Economy Verdict Distribution](figures/Economy_verdict_distribuition.png)
+
+#### Taxes
+![Taxes Verdict Distribution](figures/Taxes_verdict_distribuition.png)
+
+#### Immigration
+![Immigration Verdict Distribution](figures/Immigration_verdict_distribuition.png)
+
+#### Education
+![Education Verdict Distribution](figures/Education_verdict_distribuition.png)
+
+#### Crime
+![Crime Verdict Distribution](figures/Crime_verdict_distribuition.png)
+
+#### Jobs
+![Jobs Verdict Distribution](figures/Jobs_verdict_distribuition.png)
 
 ## Output Format
 
