@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import time
+from pathlib import Path
+import re
 
 # Create lists to store the scraped data
 authors = []
@@ -17,6 +19,68 @@ verdicts = []
 urls = []
 tags = []
 contexts = []
+evidences = []
+
+
+def clean_text(text):
+    return ' '.join(text.replace('\xa0', ' ').split())
+
+
+def text_without_links(node):
+    node_copy = BeautifulSoup(str(node), 'html.parser')
+    for removable in node_copy.find_all(['a', 'img', 'picture', 'video', 'source', 'iframe', 'script', 'style', 'figure', 'noscript']):
+        removable.decompose()
+    return clean_text(node_copy.get_text(' ', strip=True))
+
+
+def truncate_at_our_ruling(text):
+    match = re.search(r'\b(?:our|the)\s+ruling\b', text, flags=re.IGNORECASE)
+    if match:
+        return text[:match.start()].strip()
+    return text
+
+
+def extract_evidence_text(soup_article):
+    article = soup_article.find('article', attrs={'class': 'm-textblock'})
+    if not article:
+        return ''
+
+    evidence_parts = []
+    media_classes = {'artembed', 'm-slideshow', 'm-photo', 'c-image', 'c-media', 'infogram-embed'}
+    media_tags = {'script', 'style', 'iframe', 'figure', 'img', 'picture', 'video', 'source', 'noscript'}
+
+    for child in article.children:
+        if not getattr(child, 'name', None):
+            continue
+
+        tag_name = child.name.lower()
+        child_classes = set(child.get('class', []))
+        child_text = text_without_links(child)
+
+        if tag_name in {'h2', 'strong'} and re.search(r'\b(?:our|the)\s+ruling\b', child_text, flags=re.IGNORECASE):
+            break
+
+        # Some pages wrap content in a container div; stop at the first ruling section mention anywhere.
+        if re.search(r'\b(?:our|the)\s+ruling\b', child_text, flags=re.IGNORECASE):
+            truncated = truncate_at_our_ruling(child_text)
+            if truncated:
+                evidence_parts.append(truncated)
+            break
+
+        if tag_name in media_tags or child_classes.intersection(media_classes):
+            continue
+
+        if tag_name in {'ul', 'ol'}:
+            for li in child.find_all('li', recursive=False):
+                li_text = text_without_links(li)
+                if li_text:
+                    evidence_parts.append(li_text)
+            continue
+
+        if child_text:
+            evidence_parts.append(child_text)
+
+    return truncate_at_our_ruling('\n'.join(evidence_parts))
 
 def scrape_website(page_number, start_time):
     page_num = str(page_number) # Convert the page number to a string
@@ -112,6 +176,9 @@ def scrape_website(page_number, start_time):
         
         # Join tags with a semicolon or comma
         tags.append('; '.join(article_tags) if article_tags else '')
+
+        # Extract only article evidence text, excluding media/embeds and content after "Our ruling"
+        evidences.append(extract_evidence_text(soup_article))
         
         # Add a small delay to be respectful to the server (so you don't get blocked)
         time.sleep(0.2)
@@ -135,12 +202,12 @@ def scrape_website(page_number, start_time):
 
 # Loop through 'n-1' webpages to scrape the data
 start_time = time.time()
-n=880
+n=3
 for i in range(1, n):
     scrape_website(i, start_time)
 
 # Create a new dataFrame
-data = pd.DataFrame(columns = ['statement_originator', 'statement_date', 'statement', 'verdict', 'statement_source', 'tags', 'factchecker', 'factcheck_date', 'factcheck_analysis_link'])
+data = pd.DataFrame(columns = ['statement_originator', 'statement_date', 'statement', 'verdict', 'statement_source', 'tags', 'evidence', 'factchecker', 'factcheck_date', 'factcheck_analysis_link'])
 data['factchecker'] = authors
 data['statement'] = statements
 data['statement_originator'] = sources
@@ -150,6 +217,10 @@ data['verdict'] = verdicts
 data['factcheck_date'] = factcheck_dates
 data['factcheck_analysis_link'] = urls
 data['tags'] = tags
+data['evidence'] = evidences
 
 # Show the data set
-data.iloc[:].to_csv('../datasets/politifact.csv', index=False, sep=',')
+output_dir = Path(__file__).resolve().parent.parent / 'datasets'
+output_dir.mkdir(parents=True, exist_ok=True)
+output_file = output_dir / 'politifact_evidence.csv'
+data.iloc[:].to_csv(output_file, index=False, sep=',')
